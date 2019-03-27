@@ -88,9 +88,17 @@ class WordListStats:
             print('min_value', min_value)
             print('---------------')
 
-        stat4 = [x[0] for x in min_maxs if x[1] == min_value]
+        min_max_cands = [x[0] for x in min_maxs if x[1] == min_value]
+        tmp = [{x: matches_count[x]} for x in matches_count if x in min_max_cands]
+        matches_count_mm = {}
+        for x in tmp:
+            matches_count_mm.update(x)
 
-        return stat4
+        matches_count_mm_counts = [(x, len(matches_count_mm[x])) for x in matches_count_mm]
+        matches_count_mm_max = max(matches_count_mm_counts, key=lambda x: x[1])[1]
+        matches_count_mm_maxs = [x[0] for x in matches_count_mm_counts if x[1] == matches_count_mm_max]
+
+        return matches_count_mm_maxs
 
 
 def print_tree2(tree_dic):
