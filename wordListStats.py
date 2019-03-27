@@ -4,6 +4,38 @@ import numpy as np
 class WordListStats:
     def __init__(self, wordList):
         self.wordList = wordList
+        self.wordTree = {}
+        self.gen_tree()
+        self.wordCountGroups = {}
+        self.gen_count_groups()
+
+    def gen_tree(self):
+        for x in self.wordList:
+            self.wordTree[x] = {}
+            a = {}
+            for y in self.wordList:
+                if x != y:
+                    a.update({y: self.calc_com_let(x, y)})
+            self.wordTree[x] = [(k, a[k]) for k in sorted(a, key=a.get, reverse=True)]
+
+    def print_tree(self):
+        print_tree(self.wordTree)
+        print_______()
+
+    def print_count_groups(self):
+        print_tree2(self.wordCountGroups)
+        print_______()
+
+    def gen_count_groups(self, print_output=False):
+        for root_word in self.wordTree:
+            column = self.wordTree[root_word]
+            self.wordCountGroups[root_word] = {}
+            for sub_group in column:
+                self.wordCountGroups[root_word][sub_group[1]] = []
+            for sub_group in column:
+                self.wordCountGroups[root_word][sub_group[1]].append(sub_group[0])
+        if print_output:
+            print_tree2(self.wordCountGroups)
 
     @staticmethod
     def calc_com_let(firstWord, secondWord):
@@ -14,67 +46,76 @@ class WordListStats:
         return count
 
     def find_words(self, word, count, print_output=False):
-        list = []
+        selected = []
         for cur in self.wordList:
             if self.calc_com_let(cur, word) == count:
-                list.append(cur)
+                selected.append(cur)
         if print_output:
-            print_list(list, word + ' (' + str(count) + ') --> ')
-        return list
+            print_list(selected, word + ' (' + str(count) + ') --> ')
+        return selected
 
     def find_candidates(self, print_output=False):
-        tree = {}
-        for x in self.wordList:
-            tree[x] = {}
-            a = {}
-            for y in self.wordList:
-                if x != y:
-                    a.update({y: self.calc_com_let(x, y)})
-            tree[x] = [(k, a[k]) for k in sorted(a, key=a.get, reverse=True)]
         if print_output:
-            print('tree')
-            print_tree(tree)
+            print('# tree')
+            self.print_tree()
             print('---------------')
 
-        stat = {}
-        for x in tree:
-            stat0 = [x[1] for x in tree[x]]
+        matches_count = {}
+        for x in self.wordTree:
+            stat0 = [x[1] for x in self.wordTree[x]]
             un = np.unique(stat0)
-            stat[x] = []
+            matches_count[x] = []
             for y in un:
-                stat[x].append((y, stat0.count(y)))
+                matches_count[x].append((y, stat0.count(y)))
         if print_output:
-            print('stat1')
-            print_tree(stat)
+            print('# matches_count')
+            print_tree(matches_count)
             print('---------------')
 
-        stat2 = {}
-        for x in stat:
-            stat2[x] = [(max(stat[x], key=lambda x: x[1]))]
+        max_counts = {}
+        for x in matches_count:
+            max_counts[x] = [(max(matches_count[x], key=lambda x: x[1]))]
         if print_output:
-            print('stat2 - maximums in groups')
-            print_tree(stat2)
+            print('# max_counts - maximums in groups')
+            print_tree(max_counts)
             print('---------------')
 
-        stat3 = [(x, stat2[x][0][1]) for x in stat2]
-        min_value = min(stat3, key=lambda x: x[1])[1]
+        min_maxs = [(x, max_counts[x][0][1]) for x in max_counts]
+        min_value = min(min_maxs, key=lambda x: x[1])[1]
         if print_output:
-            print('stat3 - minimums from maximums')
-            print_list(stat3)
+            print('# min_maxs - minimums from maximums')
+            print_list(min_maxs)
             print('min_value', min_value)
             print('---------------')
 
-        stat4 = [x[0] for x in stat3 if x[1] == min_value]
+        stat4 = [x[0] for x in min_maxs if x[1] == min_value]
 
         return stat4
 
 
-def print_tree(tree_dic):
+def print_tree2(tree_dic):
     for x in tree_dic:
         print(x)
-        print_list(tree_dic[x], '\t')
+        print_tree(tree_dic[x], '  ⋅')
+
+
+def print_tree(tree_dic, ident=''):
+    for x in tree_dic:
+        print(ident, x)
+        print_list(tree_dic[x], '\t' + ident)
 
 
 def print_list(list_dic, ident=''):
     for cur in list_dic:
         print(ident, cur)
+
+
+def print_list_num(list_dic):
+    num = 1
+    for cur in list_dic:
+        print(str(num) + ')', cur)
+        num += 1
+
+
+def print_______():
+    print('___________________')
